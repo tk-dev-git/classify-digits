@@ -1,9 +1,16 @@
 import cv2
 import numpy as np
-from tensorflow.keras.models import load_model
+# for CPU(AVX)
+# from tensorflow.keras.models import load_model
+# for CPU(SSE)
+from keras.models import load_model
+
 
 # 学習済みモデルを読込み
-model = load_model('./model/trained_mnist_v1.0.h5')
+model = load_model('./model/trained_mnist_v1.0-sse.h5')
+
+# トリミングする正方形（Square）のサイズ
+SQ_N = 200
 
 
 def capture_video(camera_index=0):
@@ -27,7 +34,7 @@ def capture_video(camera_index=0):
         # 認識エリア（赤枠:600x600）を表示
         w_center, h_center = calculate_center(frame)
         cv2.rectangle(
-            frame, (w_center - 300, h_center - 300), (w_center + 300, h_center + 300), (0, 0, 255)
+            frame, (w_center - SQ_N, h_center - SQ_N), (w_center + SQ_N, h_center + SQ_N), (0, 0, 255)
         )
         # 数字の識別
         predict = classify_digits(frame)
@@ -60,7 +67,7 @@ def classify_digits(frame):
     """
     w_center, h_center = calculate_center(frame)
     # 画像トリミング
-    d = 300 - 1
+    d = SQ_N - 1
     trim  = frame[(h_center - d):(h_center + d), (w_center - d):(w_center + d)]
     gray  = cv2.cvtColor(trim, cv2.COLOR_BGR2GRAY)
     _, th = cv2.threshold(gray, 0, 255, cv2.THRESH_OTSU)
